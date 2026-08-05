@@ -1,12 +1,6 @@
 using System.Net.Http.Headers;
+using osrs_farming_herblore_calc.Models;
 
-Console.WriteLine("Hello World");
-
-// Find price of items for prayer potions
-// list of items by id
-var prayerPot4Dose = 2434;
-
-// for each item, get current price
 HttpClient httpClient = new()
 {
     BaseAddress = new Uri("https://prices.runescape.wiki")
@@ -15,14 +9,34 @@ HttpClient httpClient = new()
 httpClient.DefaultRequestHeaders.UserAgent.Add(
     new ProductInfoHeaderValue(new ProductHeaderValue("farming_herblore_calc_ipopcorn_on_Discord")));
 
-using HttpResponseMessage response = await httpClient.GetAsync($"api/v2/osrs/latest?id={prayerPot4Dose}");
+Console.WriteLine("Getting Prices");
 
-WriteRequestToConsole(response);
-response.EnsureSuccessStatusCode();
+// Find price of items for prayer potions
+// list of items by id
+var prayerPot4Dose = 2434;
+var ranarrSeed = 5295;
+var snapeSeed = 22879;
+
+List<(String, int)> items = new()
+{
+    ("Prayer potion(4)", prayerPot4Dose),
+    ("Ranarr seed", ranarrSeed),
+    ("Snape grass seed", snapeSeed)
+};
+
+// for each item, get current price
+foreach(var (name, id) in items)
+{
+    using HttpResponseMessage response = await httpClient.GetAsync($"api/v2/osrs/latest?id={id}");
+
+    WriteRequestToConsole(response);
+    response.EnsureSuccessStatusCode();
 
 
-var jsonResponse = await response.Content.ReadAsStringAsync();
-Console.WriteLine($"{jsonResponse}\n");
+    var jsonResponse = await response.Content.ReadAsStringAsync();
+    var item = GetItemFromResponse(jsonResponse, name);
+    Console.WriteLine($"Name: {item.Name} Price: {item.Price}");
+}
 
 // Calculate Profit
 // calculate total cost
@@ -41,4 +55,21 @@ static void WriteRequestToConsole(HttpResponseMessage response)
     Console.Write($"{request?.RequestUri} ");
     Console.WriteLine($"HTTP/{request?.Version}");
     Console.WriteLine($"{request?.Headers}");
+}
+
+static Item GetItemFromResponse(String response, String name)
+{
+    var stripped = response
+        .Replace("{", "")
+        .Replace("}", "");
+
+    var tokens = stripped.Split("\"high\":");
+    var priceString = tokens[1].Split(",")[0];
+
+    if (!int.TryParse(priceString, out var price))
+    {
+        throw new Exception("Failed to get price");
+    }
+
+    return new Item(name, price);
 }
