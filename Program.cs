@@ -15,34 +15,71 @@ Console.WriteLine("Getting Prices");
 // list of items by id
 var prayerPot4Dose = 2434;
 var ranarrSeed = 5295;
-var snapeSeed = 22879;
+// TODO: handle secondaries
+// var snapeSeed = 22879;
 
-List<(String, int)> items = new()
+List<PotionComponents> potionsToGet = new()
 {
-    ("Prayer potion(4)", prayerPot4Dose),
-    ("Ranarr seed", ranarrSeed),
-    ("Snape grass seed", snapeSeed)
+    new PotionComponents("prayer", new Item("Prayer potion(4)", prayerPot4Dose), new Item("Ranarr seed", ranarrSeed)),
 };
 
-// for each item, get current price
-foreach(var (name, id) in items)
+List<Item> retrievedItems = [];
+
+foreach(var components in potionsToGet)
 {
-    using HttpResponseMessage response = await httpClient.GetAsync($"api/v2/osrs/latest?id={id}");
+    // for each item, get current price
+    await GetPricesForComponents(components, httpClient);
+
+    decimal breakEvenPoint = GetBreakEvenPoint(components);
+    Console.WriteLine($"Break Even Point: {breakEvenPoint}");
+
+    decimal profitFor8Herbs = GetProfit(components);
+    Console.WriteLine($"Profit per 8 herbs: {profitFor8Herbs}");
+}
+
+// helper methods
+static decimal GetProfit(PotionComponents components)
+{
+    // Expected profit for 8 herbs (6 potions)
+    decimal potionPrice = components.Potion.Price;
+    decimal seedPrice = components.Seed.Price;
+
+    decimal totalCost = seedPrice;
+    decimal revenueHerbs = 8m * 0.75m * potionPrice;  // 1 herb makes 0.75 of a 4 dose pot
+    
+    return revenueHerbs - totalCost;
+}
+
+static decimal GetBreakEvenPoint(PotionComponents components)
+{
+    decimal potionPrice = components.Potion.Price;
+    decimal seedPrice = components.Seed.Price;
+
+    Console.WriteLine($"Potion Price: {potionPrice}");
+    Console.WriteLine($"Seed Price: {seedPrice}");
+
+    decimal totalCost = seedPrice;
+    decimal breakEvenPointPotions = totalCost / potionPrice;
+    return Math.Ceiling(breakEvenPointPotions * 1.25m); // It takes 1.25 herbs to make a 4 dose potion
+}
+
+async static Task GetPricesForComponents(PotionComponents components, HttpClient httpClient)
+{
+    await GetPriceForItem(components.Potion, httpClient);
+    await GetPriceForItem(components.Seed, httpClient);
+}
+
+async static Task GetPriceForItem(Item item, HttpClient httpClient)
+{
+    using HttpResponseMessage response = await httpClient.GetAsync($"api/v2/osrs/latest?id={item.Id}");
 
     WriteRequestToConsole(response);
     response.EnsureSuccessStatusCode();
 
-
     var jsonResponse = await response.Content.ReadAsStringAsync();
-    var item = GetItemFromResponse(jsonResponse, name);
-    Console.WriteLine($"Name: {item.Name} Price: {item.Price}");
+    var price = GetPriceFromResponse(jsonResponse);
+    item.Price = price;
 }
-
-// Calculate Profit
-// calculate total cost
-// calculate break even point
-
-// helper methods
 static void WriteRequestToConsole(HttpResponseMessage response)
 {
     if (response is null)
@@ -57,7 +94,7 @@ static void WriteRequestToConsole(HttpResponseMessage response)
     Console.WriteLine($"{request?.Headers}");
 }
 
-static Item GetItemFromResponse(String response, String name)
+static decimal GetPriceFromResponse(String response)
 {
     var stripped = response
         .Replace("{", "")
@@ -66,10 +103,15 @@ static Item GetItemFromResponse(String response, String name)
     var tokens = stripped.Split("\"high\":");
     var priceString = tokens[1].Split(",")[0];
 
-    if (!int.TryParse(priceString, out var price))
+    if (!decimal.TryParse(priceString, out decimal price))
     {
         throw new Exception("Failed to get price");
     }
 
-    return new Item(name, price);
+    if (price == 0m)
+    {
+        throw new Exception("Price is 0 when it should not be");
+    }
+
+    return price;
 }

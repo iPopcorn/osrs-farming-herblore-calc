@@ -2,13 +2,16 @@ namespace osrs_farming_herblore_calc.Models;
 
 public class Item
 {
-    public int Price {get; set;}
+    public decimal Price {get; set;}
 
     public string Name {get; set;}
 
-    public Item(string name, int price)
+    public int Id {get; set;}
+
+    public Item(string name, int id)
     {
         Name = name;
-        Price = price;
+        Id = id;
+        Price = 0m;
     }
 }
