@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using osrs_farming_herblore_calc.Models;
+using osrs_farming_herblore_calc.Constants;
 
 HttpClient httpClient = new()
 {
@@ -11,16 +12,12 @@ httpClient.DefaultRequestHeaders.UserAgent.Add(
 
 Console.WriteLine("Getting Prices");
 
-// Find price of items for prayer potions
-// list of items by id
-var prayerPot4Dose = 2434;
-var ranarrSeed = 5295;
-// TODO: handle secondaries
-// var snapeSeed = 22879;
-
 List<PotionComponents> potionsToGet = new()
 {
-    new PotionComponents("prayer", new Item("Prayer potion(4)", prayerPot4Dose), new Item("Ranarr seed", ranarrSeed)),
+    new PotionComponents("prayer", new Item("Prayer potion(4)", ItemIds.PRAYER_POT_4), new Item("Ranarr seed", ItemIds.RANARR_SEED)),
+    new PotionComponents("super restore", new Item("Super restore(4)", ItemIds.SUPER_RESTORE_4), new Item("Snapdragon seed", ItemIds.SNAPDRAGON_SEED)),
+    new PotionComponents("sara brew", new Item("Saradomin brew(4)", ItemIds.SARADOMIN_BREW_4), new Item("Toadflax seed", ItemIds.TOADFLAX_SEED)),
+    new PotionComponents("super att", new Item("Super attack(4)", ItemIds.SUPER_ATTACK_4), new Item("Irit seed", ItemIds.IRIT_SEED)),
 };
 
 List<Item> retrievedItems = [];
