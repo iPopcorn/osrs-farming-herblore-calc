@@ -18,6 +18,9 @@ List<PotionComponents> potionsToGet = new()
     new PotionComponents("super restore", new Item("Super restore(4)", ItemIds.SUPER_RESTORE_4), new Item("Snapdragon seed", ItemIds.SNAPDRAGON_SEED)),
     new PotionComponents("sara brew", new Item("Saradomin brew(4)", ItemIds.SARADOMIN_BREW_4), new Item("Toadflax seed", ItemIds.TOADFLAX_SEED)),
     new PotionComponents("super att", new Item("Super attack(4)", ItemIds.SUPER_ATTACK_4), new Item("Irit seed", ItemIds.IRIT_SEED)),
+    new PotionComponents("super str", new Item("Super strength(4)", ItemIds.SUPER_STRENGTH_4), new Item("Kwuarm seed", ItemIds.KWUARM_SEED)), 
+    new PotionComponents("super def", new Item("Super defense(4)", ItemIds.SUPER_DEFENSE_4), new Item("Cadantine seed", ItemIds.CADANTINE_SEED)),
+    new PotionComponents("antifire", new Item("Antifire potion(4)", ItemIds.ANTIFIRE_POT_4), new Item("Lantadyme seed", ItemIds.LANTADYME_SEED)),
 };
 
 List<Item> retrievedItems = [];
