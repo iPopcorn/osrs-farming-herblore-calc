@@ -23,7 +23,7 @@ List<PotionComponents> potionsToGet = new()
     new PotionComponents("antifire", new Item("Antifire potion(4)", ItemIds.ANTIFIRE_POT_4), new Item("Lantadyme seed", ItemIds.LANTADYME_SEED)),
 };
 
-List<Item> retrievedItems = [];
+List<ProfitCalculation> calculations = [];
 
 foreach(var components in potionsToGet)
 {
@@ -31,10 +31,25 @@ foreach(var components in potionsToGet)
     await GetPricesForComponents(components, httpClient);
 
     decimal breakEvenPoint = GetBreakEvenPoint(components);
-    Console.WriteLine($"Break Even Point: {breakEvenPoint}");
-
     decimal profitFor8Herbs = GetProfit(components);
-    Console.WriteLine($"Profit per 8 herbs: {profitFor8Herbs}");
+
+    var calculation = new ProfitCalculation()
+    {
+        Name = components.Name,
+        BreakEvenPoint = breakEvenPoint,
+        ProfitPer8Herbs = profitFor8Herbs,
+    };
+
+    calculations.Add(calculation);
+}
+
+calculations.Sort();
+calculations.Reverse();
+foreach(var calc in calculations)
+{
+    Console.WriteLine($"Calculation for {calc.Name}");
+    Console.WriteLine($"Break Even Point: {calc.BreakEvenPoint}");
+    Console.WriteLine($"Profit per 8 herbs: {calc.ProfitPer8Herbs}\n");
 }
 
 // helper methods
